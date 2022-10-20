@@ -23,7 +23,7 @@ imdsv2_auth_token = (requests.put('http://169.254.169.254/latest/api/token', hea
 imdsv2_region = (requests.get('http://169.254.169.254/latest/meta-data/placement/region', headers={'X-aws-ec2-metadata-token': imdsv2_auth_token})).text
 imdsv2_instance_id = (requests.get('http://169.254.169.254/latest/meta-data/instance-id', headers={'X-aws-ec2-metadata-token': imdsv2_auth_token})).text
 
-os.environ["REGION"] = imdsv2_region
+os.environ["AWS_DEFAULT_REGION"] = imdsv2_region
 
 # API's 
 ####################################################
