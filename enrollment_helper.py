@@ -1,3 +1,4 @@
+import base64
 import bjoern
 import boto3
 import logging
@@ -55,7 +56,7 @@ def enrollement_token():
                 if request.remote_addr == item['ip']:
                     enroll_token = create_enrollment_token(item['task_id'], json_body['scope'])
                     resp = requests.post(
-                        url=f"http://{item['ip']}:5601",
+                        url=f"http://{item['ip']}:5601/internal/interactive_setup/enroll",
                         data={
                             'hosts': enroll_token['hosts'],
                             'apiKey': enroll_token['apiKey'],
@@ -78,7 +79,7 @@ def enrollement_token():
             if 'task_id' not in json_body:
                 response_message['status'] = 400
             else: 
-                enroll_token = create_enrollment_token(task_id, scope)
+                enroll_token = create_enrollment_token(task_id, 'scope')
                 response_message['enrollment_token'] = enroll_token
                 
                 
@@ -207,6 +208,40 @@ def kibana_cloudwatch_logs_searcher(task_id=None):
     return kibana_codes
 
 
+def register_local_elasticsearch_instance():
+    asg_cluster_name = os.getenv("EC2_ASG_CLUSTER_NAME")
+    asg_client = boto3.client('autoscaling')
+    asg_instances = asg_client.describe_auto_scaling_instances()
+    
+    stable_instance_ids = []
+    for i in asg_instances['AutoScalingInstances']:
+        if asg_cluster_name in i['AutoScalingGroupName']:
+            if i['LifecycleState'] == 'InService':
+                stable_instance_ids.append(i['InstanceId'])
+    
+    
+    ec2_client = boto3.client('ec2')
+    ec2_results = ec2_client.describe_instances(InstanceIds=stable_instance_ids)
+    
+    ec2_instance_ips = [i['NetworkInterfaces']['PrivateIpAddresses'][0]['PrivateIpAddress'] for i in ec2_results['Reservations']['Instances']]
+    ec2_hosts = [f"https://{ip}:7001" for ip in ec2_instance_ips]
+    
+    for ec2_instance in ec2_hosts:
+        try:
+            logging.info(f"Trying instance {ec2_instance}")
+            helper_response = requests.get(f"{ec2_instance}/ping")
+            if "pong" in helper_response.text:
+                enroll_token = create_enrollment_token(imdsv2_instance_id, 'elasticsearch')
+                logging.info("Elasticsearch was successfully enrolled.")
+                break
+            
+        except requests.RequestException as e:
+            logging.error(f"Error encountered in connection to {ec2_instance}: {e}")
+    
+    os.system(f"/usr/share/elasticsearch/bin/elasticsearch-reconfigure-node --enrollment-token { base64.b64encode(enroll_token) }")
+
+
+
 def check_cluster_health():
     sm_client = boto3.client('secretsmanager')
     sm_resp = sm_client.get_secret_value(SecretId=os.getenv('USER_SECRET_ARN'))         
@@ -235,12 +270,12 @@ def check_cluster_health():
     lifecycle_client = boto3.client('autoscaling')
     resp = lifecycle_client.complete_lifecycle_action(
         LifecycleHookName='sync_elasticsearch',
-        AutoScalingGroupName='elasticsearch-main-masters',
+        AutoScalingGroupName=os.getenv("EC2_ASG_CLUSTER_NAME"),
         InstanceId=imdsv2_instance_id
     )
 
 
-
 if __name__ == '__main__':
+    register_local_elasticsearch_instance()
     check_cluster_health()
     bjoern.run(api, "0.0.0.0", 7001)
