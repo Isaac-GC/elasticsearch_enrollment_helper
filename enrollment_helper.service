@@ -5,7 +5,7 @@ After=multi-user.target
 [Service]
 Type=simple
 Restart=always
-ExecStart=/usr/share/enrollment_helper/bin/python3 /usr/share/enrollment_helper/enrollment_helper.py
+ExecStart=/usr/share/enrollment_helper/bin/python /usr/share/enrollment_helper/enrollment_helper.py
 
 [Install]
 WantedBy=multi-user.target

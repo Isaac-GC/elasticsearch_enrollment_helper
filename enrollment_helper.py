@@ -107,17 +107,17 @@ def create_enrollment_token(task_id, scope):
     asg_cluster_name = os.getenv("EC2_ASG_CLUSTER_NAME")
     asg_client = boto3.client('autoscaling')
     asg_instances = asg_client.describe_auto_scaling_instances()
-    
+
     stable_instance_ids = []
     for i in asg_instances['AutoScalingInstances']:
         if asg_cluster_name in i['AutoScalingGroupName']:
             if i['LifecycleState'] == 'InService':
                 stable_instance_ids.append(i['InstanceId'])
-    
-    
+
+
     ec2_client = boto3.client('ec2')
     ec2_results = ec2_client.describe_instances(InstanceIds=stable_instance_ids)
-    
+        
     ec2_instance_ips = [i['NetworkInterfaces']['PrivateIpAddresses'][0]['PrivateIpAddress'] for i in ec2_results['Reservations']['Instances']]
     ec2_hosts = [f"https://{ip}:9200" for ip in ec2_instance_ips]
     
@@ -218,12 +218,16 @@ def register_local_elasticsearch_instance():
         if asg_cluster_name in i['AutoScalingGroupName']:
             if i['LifecycleState'] == 'InService':
                 stable_instance_ids.append(i['InstanceId'])
-    
-    
+
+
     ec2_client = boto3.client('ec2')
     ec2_results = ec2_client.describe_instances(InstanceIds=stable_instance_ids)
-    
-    ec2_instance_ips = [i['Instances'][0]['NetworkInterfaces'][0]['PrivateIpAddresses'][0]['PrivateIpAddress'] for i in ec2_results['Reservations']]
+
+    ec2_instance_ips = []
+    for i in ec2_results['Reservations']:
+        if len(i['Instances'][0]['NetworkInterfaces']) > 0:
+            ec2_instance_ips.append(i['Instances'][0]['NetworkInterfaces'][0]['PrivateIpAddresses'][0]['PrivateIpAddress'])
+            
     ec2_hosts = [f"https://{ip}:7001" for ip in ec2_instance_ips]
     
     for ec2_instance in ec2_hosts:
