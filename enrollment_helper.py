@@ -276,6 +276,7 @@ def check_cluster_health():
     resp = lifecycle_client.complete_lifecycle_action(
         LifecycleHookName='sync_elasticsearch',
         AutoScalingGroupName=os.getenv("EC2_ASG_CLUSTER_NAME"),
+        LifecycleActionResult='CONTINUE',
         InstanceId=imdsv2_instance_id
     )
 
