@@ -237,13 +237,14 @@ def register_local_elasticsearch_instance():
             if "pong" in helper_response.text:
                 enroll_token = create_enrollment_token(imdsv2_instance_id, 'elasticsearch')
                 logging.info("Elasticsearch was successfully enrolled.")
+                os.system(f"yes | /usr/share/elasticsearch/bin/elasticsearch-reconfigure-node --enrollment-token { base64.b64encode(enroll_token) }")
+                os.system(f"systemctl restart elasticsearch")
                 break
             
         except requests.RequestException as e:
             logging.error(f"Error encountered in connection to {ec2_instance}: {e}")
     
-    os.system(f"yes | /usr/share/elasticsearch/bin/elasticsearch-reconfigure-node --enrollment-token { base64.b64encode(enroll_token) }")
-    os.system(f"systemctl restart elasticsearch")
+
 
 
 
