@@ -1,6 +1,7 @@
 import base64
 import bjoern
 import boto3
+import json
 import logging
 import os
 import re
@@ -123,7 +124,7 @@ def create_enrollment_token(task_id, scope):
     
     
     sm_client = boto3.client('secretsmanager')
-    sm_resp = sm_client.get_secret_value(SecretId=os.getenv('USER_SECRET_ARN'))         
+    sm_resp = json.loads(sm_client.get_secret_value(SecretId=os.getenv('USER_SECRET_ARN'))['SecretString'])
     
     info_dict =  {
         'username': sm_resp['elastic_username'],
@@ -250,7 +251,7 @@ def register_local_elasticsearch_instance():
 
 def check_cluster_health():
     sm_client = boto3.client('secretsmanager')
-    sm_resp = sm_client.get_secret_value(SecretId=os.getenv('USER_SECRET_ARN'))         
+    sm_resp = json.loads(sm_client.get_secret_value(SecretId=os.getenv('USER_SECRET_ARN'))['SecretString']) 
     
     info_dict =  {
         'username': sm_resp['elastic_username'],
