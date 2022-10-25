@@ -1,3 +1,4 @@
+  GNU nano 6.2                                                 /etc/systemd/system/enrollment_helper.service                                                           
 [Unit]
 Description=Enrollment Helper for ElasticStack
 After=multi-user.target
@@ -5,6 +6,7 @@ After=multi-user.target
 [Service]
 Type=simple
 Restart=always
+EnvironmentFile=-/etc/profile.d/es_env_vars
 ExecStart=/usr/share/enrollment_helper/bin/python /usr/share/enrollment_helper/enrollment_helper.py
 
 [Install]

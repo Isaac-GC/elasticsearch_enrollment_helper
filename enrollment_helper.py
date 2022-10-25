@@ -242,7 +242,8 @@ def register_local_elasticsearch_instance():
         except requests.RequestException as e:
             logging.error(f"Error encountered in connection to {ec2_instance}: {e}")
     
-    os.system(f"/usr/share/elasticsearch/bin/elasticsearch-reconfigure-node --enrollment-token { base64.b64encode(enroll_token) }")
+    os.system(f"yes | /usr/share/elasticsearch/bin/elasticsearch-reconfigure-node --enrollment-token { base64.b64encode(enroll_token) }")
+    os.system(f"systemctl restart elasticsearch")
 
 
 

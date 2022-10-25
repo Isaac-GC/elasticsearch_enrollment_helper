@@ -1,0 +1,5 @@
+ENROLLMENT_HELPER_SECRET_ARN="<aws secrets manager arn>"
+USER_SECRET_ARN="<aws secrets manager arn>"
+EC2_ASG_CLUSTER_NAME="<ec2 asg cluster name>"
+ECS_CLUSTER_NAME="<ecs cluster name for kibana>"
+ECS_TASK_FAMILY_NAME="<ecs task family>"

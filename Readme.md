@@ -28,3 +28,22 @@ Licensed under the Apache 2.0
   - Build a request with the Enrollment Token and the found auth code
   - Send the request to a Kibana API, finishing the enrollment
 4. Kibana then will autoconfigure itself to the Elasticsearch Instances
+
+
+
+___
+
+### Required Environment Variables
+These should be stored in a default file named: `/etc/profile.d/es_env_vars`. 
+
+If you change the file location for the environment variables files, you need to change the entry in enrollment_helper.service file too.
+
+
+**Required Environment Variables**
+- `ENROLLMENT_HELPER_SECRET_ARN`  
+- `USER_SECRET_ARN`  
+- `EC2_ASG_CLUSTER_NAME`  
+- `ECS_CLUSTER_NAME`  
+- `ECS_TASK_FAMILY_NAME`  
+
+
